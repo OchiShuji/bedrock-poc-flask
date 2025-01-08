@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="static/css/custom_styles.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+    <div id="history-table-wrapper">
+    <form method="get" action="{{ url_for('history') }}">
+      <ul>
+      <li>
+        Your prompt history
+      </li>
+      <li>
+        <select name="limit" id="history-limit">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>              
+      </li>
+      <li>
+        <input type="submit" value="display">
+      </li>
+      </ul>   
+    </form>
+      <table id="history-table">
+        <tr>
+          <th>Timestamp</th>
+          <th>Model</th>
+          <th>Your prompt</th>
+          <th>Output</th>
+        </tr>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.timestamp }}</td>
+          <td>{{ item.model_id }}</td>
+          <td>{{ item.input_text }}</td>
+          <td>{{ item.output_text }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </body>
+</html>

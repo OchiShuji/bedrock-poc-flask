@@ -1,0 +1,134 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+  }
+  
+  form#chat-form {
+    max-width: 600px;
+    margin: 50px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  li {
+    margin-bottom: 20px;
+  }
+  
+  p {
+    margin: 10px 0;
+  }
+  
+  textarea {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: vertical;
+  }
+  
+  input[type="button"] {
+    background-color: #4caf90;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  input[type="button"]:hover {
+    background-color: #337762;
+  }
+
+  input[type="range"] {
+    margin: 0.4rem;
+  }
+
+  table {
+    margin: 0 auto;
+  }
+
+  table[id="history-table"] {
+    border: 1px solid #ccc;
+  }
+  
+  div[id=history-table-wrapper] {
+    max-width: 600px;
+    margin: 50px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+
+  /* テーブル全体のスタイリング */
+table#history-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+/* ヘッダーのスタイル */
+table#history-table th {
+  background-color: #4caf90; /* グリーン系の背景色 */
+  color: #fff; /* 白い文字 */
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #ddd; /* ボーダー */
+  font-weight: bold;
+}
+
+/* データ行のスタイル */
+table#history-table td {
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #ddd; /* ボーダー */
+  background-color: #f9f9f9; /* 薄いグレー */
+}
+
+/* 行の交互カラーリング */
+table#history-table tr:nth-child(even) {
+  background-color: #f1f1f1; /* 交互に少し濃いグレー */
+}
+
+/* ホバー時の行の強調 */
+table#history-table tr:hover {
+  background-color: #e8f5e9; /* 薄い緑色でホバー効果 */
+}
+
+/* テキストの折り返し対応 */
+table#history-table td {
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* テーブルの外枠を調整 */
+div#history-table-wrapper {
+  overflow-x: auto; /* 横スクロールを可能にする */
+}
+
+form input[type="submit"] {
+    background-color: #4caf50;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+  }
+  
+  form input[type="submit"]:hover {
+    background-color: #45a049;
+  }

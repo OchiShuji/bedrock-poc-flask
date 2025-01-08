@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="static/css/custom_styles.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+    <form method="post" action="{{ url_for('invoke_model') }}" id="chat-form">
+        <ul>
+            <li>
+              <img src="static/image/bedrock.png" width="100" height="100">
+            </li>
+            <li>
+              <p>Input Message</p>
+              <textarea name="input_text" rows="4" cols="40"></textarea>
+            </li>
+            <li>
+              <table>
+                <tr>
+                  <td><input type="range" name="temperature" min="0" max="1" step="0.01" value="0.1" oninput="updateValue('temperature', this.value)" /></td>
+                  <td>
+                    <label for="temperature">temperature</label>
+                    <span id="temperature-value" class="range-display">0.1</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="range" name="top_p" min="0" max="1" step="0.01" value="0.1" oninput="updateValue('top_p', this.value)"  /></td>
+                  <td>
+                    <label for="top_p">top_p</label>
+                    <span id="top_p-value" class="range-display">0.1</span>
+                  </td>
+                </tr>
+              </table>
+            </li>
+            <li>
+              <select name="modelId" id="pet-select">
+                <option value="">--Please choose an option--</option>
+                <option value="anthropic.claude-v2:1">Claude 2.1</option>
+                <option value="anthropic.claude-3-5-sonnet-20240620-v1:0">Claude 3.5 Sonnet</option>
+                <option value="anthropic.claude-3-haiku-20240307-v1:0">Claude 3 Haiku</option>
+                <option value="amazon.titan-text-express-v1">Titan Text G1 - Express</option>
+              </select>              
+            </li>
+            <li>
+                <input type="submit" value="Send" />
+            </li>
+            <li>
+                <br />
+                <p>Output Message</p>
+                {% if output_text == "" %}
+                <textarea id="output_message" rows="4" cols="40"></textarea>
+                {% else %}
+                <textarea id="output_message" rows="4" cols="40">{{ output_text }}</textarea>
+                {% endif %}
+            </li>
+            <li>
+                Prompt history: <a href="{{ url_for('history') }}">here</a>.
+          </li>
+          </ul>
+    </form>
+    <script>
+      function updateValue(id, value) {
+        document.getElementById(`${id}-value`).textContent = value;
+      }
+    </script>
+  </body>
+</html>

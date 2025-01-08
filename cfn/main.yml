@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Deployment for AWS environment
+
+Parameters:
+  ServiceName:
+    Type: String
+    Default: bedrock-poc-flaskr
+    Description: Name of the service
+
+Resources:
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref ServiceName
+      AttributeDefinitions:
+        - AttributeName: timestamp
+          AttributeType: S
+        - AttributeName: model_id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: timestamp
+          KeyType: HASH
+        - AttributeName: model_id
+          KeyType: RANGE
+      Tags:
+        - Key: service
+          Value: !Ref ServiceName
+
+# =====VPC=====
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.50.0.0/16
+      InstanceTenancy: default
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: service
+          Value: !Ref ServiceName
+  
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.50.1.0/24
+      AvailabilityZone: ap-northeast-1a
+      VpcId: !Ref VPC
+      Tags:
+        - Key: service
+          Value: !Ref ServiceName
+  
+  PublicSubnet2:
+  Type: AWS::EC2::Subnet
+  Properties:
+    CidrBlock: 10.50.2.0/24
+    AvailabilityZone: ap-northeast-1a
+    VpcId: !Ref VPC
+    Tags:
+      - Key: service
+        Value: !Ref ServiceName
+
+  IGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-igw
+        - Key: service
+          Value: !Ref ServiceName
+  
+  IGWAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref IGW
+      VpcId: !Ref VPC
+  
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-public
+        - Key: service
+          Value: !Ref ServiceName
+    
+  PublicRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+# =====Security Group======
+
+
+# =====ECS=====
+
+# =====ECR=====
+
+Outputs:
+  DynamoDBTable:
+    Value: !Ref DynamoDBTable
+    Export:
+      Name: !Sub ${AWS::StackName}-DynamoDBTable
