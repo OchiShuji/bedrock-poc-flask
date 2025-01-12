@@ -1,0 +1,4 @@
+.git*
+.venv
+cfn
+flaskr/__pycache__
