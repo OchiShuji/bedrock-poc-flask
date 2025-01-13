@@ -88,18 +88,32 @@ Resources:
         - Key: service
           Value: !Ref ServiceName
     
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IGW
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref IGW
+    
   PublicRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet
 
+  PublicRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
 # =====ECR=====
   ECRRepository:
     Type: AWS::ECR::Repository
     Properties:
       EmptyOnDelete: true
-      RepositoryName: !Sub ${ServiceName}-cluster
+      RepositoryName: !Sub ${ServiceName}
       Tags:
         - Key: service
           Value: !Ref ServiceName
@@ -197,7 +211,7 @@ Resources:
       RequiresCompatibilities:
         - FARGATE
       RuntimePlatform:
-        CpuArchitecture: X86_64
+        CpuArchitecture: ARM64
         OperatingSystemFamily: LINUX
       Tags:
         - Key: service
