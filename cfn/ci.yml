@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Flask Applicattion Deployment Pipeline
+
+Parameters:
+  ServiceName:
+    Type: String
+    Default: bedrock-poc-flaskr
+    Description: Name of the service
+
+Resources:
+  Type: AWS::CodePipeline::Pipeline
+  CodePipelinePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${ServiceName}-codepipeline-pipeline-role'
+      RestartExecutionOnUpdate: true
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: Source
+              RunOrder: 1
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: '1'
+              Configuration:
+                ConnectionArn: !ImportValue CodeStarConnectionArn
+                FullRepositoryId: !ImportValue CodeCommitRepo
+                BranchName: master
+              OutputArtifacts:
+                - Name: SourceOutput
+        - Name: Build
+          Actions:
+            - Name: Build
+              RunOrder: 1
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !ImportValue CodeBuildName
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput

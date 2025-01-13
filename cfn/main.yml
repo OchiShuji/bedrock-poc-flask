@@ -1,13 +1,17 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Deployment for AWS environment
+Description: Flask Applicattion Deployment Environment
 
 Parameters:
   ServiceName:
     Type: String
     Default: bedrock-poc-flaskr
     Description: Name of the service
+  PrefixListId:
+    Type: String
+    Default: pl-0f1765f9b4e2f2171s
 
 Resources:
+# =====DynamoDB====
   DynamoDBTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -50,14 +54,14 @@ Resources:
           Value: !Ref ServiceName
   
   PublicSubnet2:
-  Type: AWS::EC2::Subnet
-  Properties:
-    CidrBlock: 10.50.2.0/24
-    AvailabilityZone: ap-northeast-1a
-    VpcId: !Ref VPC
-    Tags:
-      - Key: service
-        Value: !Ref ServiceName
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.50.2.0/24
+      AvailabilityZone: ap-northeast-1a
+      VpcId: !Ref VPC
+      Tags:
+        - Key: service
+          Value: !Ref ServiceName
 
   IGW:
     Type: AWS::EC2::InternetGateway
@@ -89,12 +93,135 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet
-# =====Security Group======
-
-
-# =====ECS=====
 
 # =====ECR=====
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      EmptyOnDelete: true
+      RepositoryName: !Sub ${ServiceName}-cluster
+      Tags:
+        - Key: service
+          Value: !Ref ServiceName
+
+# =====Security Group======
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: !Sub ${AWS::StackName}-sg
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourcePrefixListId: !Ref PrefixListId
+      Tags:
+        - Key: service
+          Value: !Ref ServiceName
+
+# =====ECS=====
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/${ServiceName}
+      Tags:
+        - Key: service
+          Value: !Ref ServiceName
+
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub ${ServiceName}-cluster
+      Tags:
+        - Key: service
+          Value: !Ref ServiceName
+
+  ECSTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ServiceName}-ecs-task-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Tags:
+        - Key: service
+          Value: !Ref ServiceName
+  
+  ECSTaskRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:*
+            Resource:
+              Fn::GetAtt: DynamoDBTable.Arn
+          - Effect: Allow
+            Action:
+              - bedrock:InvokeModel*
+            Resource: "*"
+      PolicyName: !Sub ${ServiceName}-ecs-task-policy
+      Roles:
+        - !Ref ECSTaskRole
+
+  ECSTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Name: !Ref ServiceName
+          Image:
+            Fn::GetAtt: ECRRepository.RepositoryUri
+          PortMappings:
+            - ContainerPort: 80
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Sub /ecs/${ServiceName}
+              awslogs-region: ap-northeast-1
+              awslogs-stream-prefix: !Ref ServiceName
+      ExecutionRoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/ecsTaskExecutionRole
+      TaskRoleArn:
+        Fn::GetAtt: ECSTaskRole.Arn
+      Family: !Ref ServiceName
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      RuntimePlatform:
+        CpuArchitecture: X86_64
+        OperatingSystemFamily: LINUX
+      Tags:
+        - Key: service
+          Value: !Ref ServiceName
+
+  ECSService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      ServiceName: !Sub ${ServiceName}-service
+      DesiredCount: 1
+      TaskDefinition: !Ref ECSTaskDefinition
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Fn::GetAtt: SecurityGroup.GroupId
+          Subnets:
+            - !Ref PublicSubnet
+            - !Ref PublicSubnet2
+      Tags:
+        - Key: service
+          Value: !Ref ServiceName
 
 Outputs:
   DynamoDBTable:
